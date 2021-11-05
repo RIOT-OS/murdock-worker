@@ -1,0 +1,59 @@
+version: "3.4"
+services:
+  worker:
+    image: murdock-worker:latest
+    tmpfs:
+       - /tmp:exec,size=16g,rw
+    volumes:
+      - cache:/root
+    environment:
+      - CCACHE="ccache"
+      - CCACHE_DIR=/root/.ccache
+      - CCACHE_MAXSIZE=${MURDOCK_CCACHE_MAXSIZE:-8G}
+      - CCACHE_COMPRESS=true
+      # each file takes at least 4kb, so this needs to match the max size
+      - CCACHE_MAX_FILES=${MURDOCK_CCACHE_MAX_FILES:-2000000}
+      - GIT_CACHE_DIR=/root/.gitcache
+      - MURDOCK_HOSTNAME=unnamed-worker
+      - MURDOCK_REDIS_HOST=ssh_bridge
+      - JOBS=${MURDOCK_JOBS:-4}
+      - DWQ_DISQUE_URL=ssh_bridge:7711
+    command: >-
+          /run.sh dwqw
+            --name ${MURDOCK_HOSTNAME}
+            --queues ${MURDOCK_HOSTNAME} ${MURDOCK_QUEUES:-defaultx}
+            --jobs ${MURDOCK_WORKERS:-1}
+
+    restart: unless-stopped
+
+  ssh_bridge:
+    # any image that has autossh+ssh would do, but we're pulling
+    # `murdock-worker:latest` anyways.
+    image: murdock-worker:latest
+    volumes:
+       - ./ssh:/root/.ssh
+    command: >-
+     /usr/bin/autossh
+      -M 0 -C -N -o ServerAliveInterval=60 -o ServerAliveCountMax=2
+      -Lssh_bridge:7711:localhost:7711 -Lssh_bridge:6379:localhost:6379
+      murdock
+    restart: unless-stopped
+
+  cache-keepalive:
+      # this is used to keep the cache volume alive during restarts of the other
+      # service containers (e.g., when docker compose recreates them after a pull.)
+      # if the last container using a tmpfs volume unmounts it, the tmpfs
+      # contents are gone. So, use a dummy container that's just using the 
+      # volume
+      image: alpine:latest
+      volumes:
+        - cache:/cache
+      command: sh -c 'while sleep 99; do true; done'
+      restart: unless-stopped
+
+volumes:
+  cache:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: exec,rw,noatime,size=8g
