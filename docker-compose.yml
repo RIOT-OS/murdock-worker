@@ -1,7 +1,8 @@
 version: "3.4"
 services:
   worker:
-    image: murdock-worker:latest
+    image: riot/murdock-worker:latest
+    init: true
     tmpfs:
        - /tmp:exec,size=${MURDOCK_BUILD_TMPFS_GIGS}g,rw
     volumes:
@@ -12,30 +13,26 @@ services:
       - CCACHE_MAXSIZE=${MURDOCK_CCACHE_MAXSIZE:-8G}
       - CCACHE_COMPRESS=true
       # each file takes at least 4kb, so this needs to match the max size
-      - CCACHE_MAX_FILES=${MURDOCK_CCACHE_MAX_FILES:-2000000}
+      - CCACHE_MAX_FILES=${MURDOCK_CCACHE_MAX_FILES:-0}
       - GIT_CACHE_DIR=/root/.gitcache
       - MURDOCK_HOSTNAME=${MURDOCK_HOSTNAME}
       - MURDOCK_REDIS_HOST=ssh_bridge
       - JOBS=${MURDOCK_JOBS:-4}
       - DWQ_DISQUE_URL=ssh_bridge:7711
-    command: >-
-          /run.sh dwqw
-            --name ${MURDOCK_HOSTNAME}
-            --queues ${MURDOCK_HOSTNAME} ${MURDOCK_QUEUES:-defaultx}
-            --jobs ${MURDOCK_WORKERS:-1}
+    command: "sh -c \"git-cache init && dwqw --name ${MURDOCK_HOSTNAME} --queues ${MURDOCK_HOSTNAME} ${MURDOCK_QUEUES:-defaultx} --jobs ${MURDOCK_WORKERS:-2} --verbose\""
 
     restart: unless-stopped
 
   ssh_bridge:
     # any image that has autossh+ssh would do, but we're pulling
     # `murdock-worker:latest` anyways.
-    image: murdock-worker:latest
+    image: riot/murdock-worker:latest
     volumes:
        - ./ssh:/root/.ssh
     command: >-
      /usr/bin/autossh
       -M 0 -C -N -o ServerAliveInterval=60 -o ServerAliveCountMax=2
-      -Lssh_bridge:7711:localhost:7711 -Lssh_bridge:6379:localhost:6379
+      -Lssh_bridge:7711:disque:7711 -Lssh_bridge:6379:redis:6379
       murdock
     restart: unless-stopped
 
@@ -46,9 +43,10 @@ services:
       # contents are gone. So, use a dummy container that's just using the 
       # volume
       image: alpine:latest
+      init: true
       volumes:
         - cache:/cache
-      command: sh -c 'while sleep 99; do true; done'
+      command: sh -c 'trap "exit" INT TERM KILL; while true; do sleep 10 ; done'
       restart: unless-stopped
 
 volumes:
