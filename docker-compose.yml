@@ -28,6 +28,9 @@ services:
     command: dwqw --name ${MURDOCK_HOSTNAME} --queues ${MURDOCK_HOSTNAME} ${MURDOCK_QUEUES:-defaultx} --jobs ${MURDOCK_WORKERS:-2} --verbose
 
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.scope=${COMPOSE_PROJECT_NAME}
 
   ssh_bridge:
     # any image that has autossh+ssh would do, but we're pulling
@@ -42,6 +45,9 @@ services:
       -Lssh_bridge:6379:${MURDOCK_REMOTE_REDIS_HOST_PORT:-redis:6379}
       murdock
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.scope=${COMPOSE_PROJECT_NAME}
 
   cache-keepalive:
       # this is used to keep the cache volume alive during restarts of the other
@@ -55,6 +61,14 @@ services:
         - ccache:/cache
       command: sh -c 'trap "exit" INT TERM KILL; while true; do sleep 1 ; done'
       restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCOPE=${COMPOSE_PROJECT_NAME}
+    command: --enable-label
 
 volumes:
   ccache:
