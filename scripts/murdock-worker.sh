@@ -8,7 +8,7 @@ fi
 
 export HOME=/data/riotbuild
 
-# initialize git cache
-git-cache init
+# initialize git cache, bail out if it won't work
+git-cache init || exit 0
 
 exec $*

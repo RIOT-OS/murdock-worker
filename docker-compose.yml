@@ -55,11 +55,13 @@ services:
       # if the last container using a tmpfs volume unmounts it, the tmpfs
       # contents are gone. So, use a dummy container that's just using the
       # volume
+      # Also, fixup cache folder permissions.
       image: alpine:latest
       init: true
       volumes:
-        - ccache:/cache
-      command: sh -c 'trap "exit" INT TERM KILL; while true; do sleep 1 ; done'
+        - ccache:/cache/.ccache
+        - gitcache:/cache/.gitcache
+      command: sh -c 'trap "exit" INT TERM KILL; chown 999 /cache/.ccache /cache/.gitcache ; while true; do sleep 1 ; done'
       restart: unless-stopped
 
   watchtower:
