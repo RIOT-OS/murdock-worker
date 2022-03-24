@@ -29,7 +29,6 @@ services:
 
     restart: unless-stopped
     labels:
-      - com.centurylinklabs.watchtower.enable=true
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
   ssh_bridge:
@@ -46,7 +45,6 @@ services:
       murdock
     restart: unless-stopped
     labels:
-      - com.centurylinklabs.watchtower.enable=true
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
   cache-keepalive:
@@ -70,7 +68,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - WATCHTOWER_SCOPE=murdock-worker-${MURDOCK_HOSTNAME}
-    command: --label-enable
+      - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-60}
+      - WATCHTOWER_CLEANUP=true
 
 volumes:
   ccache:
