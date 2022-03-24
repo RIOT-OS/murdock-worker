@@ -30,7 +30,7 @@ services:
     restart: unless-stopped
     labels:
       - com.centurylinklabs.watchtower.enable=true
-      - com.centurylinklabs.watchtower.scope=${COMPOSE_PROJECT_NAME}
+      - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
   ssh_bridge:
     # any image that has autossh+ssh would do, but we're pulling
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
     labels:
       - com.centurylinklabs.watchtower.enable=true
-      - com.centurylinklabs.watchtower.scope=${COMPOSE_PROJECT_NAME}
+      - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
   cache-keepalive:
       # this is used to keep the cache volume alive during restarts of the other
@@ -67,7 +67,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - WATCHTOWER_SCOPE=${COMPOSE_PROJECT_NAME}
+      - WATCHTOWER_SCOPE=murdock-worker-${MURDOCK_HOSTNAME}
     command: --enable-label
 
 volumes:
