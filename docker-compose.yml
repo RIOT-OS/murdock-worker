@@ -68,7 +68,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - WATCHTOWER_SCOPE=murdock-worker-${MURDOCK_HOSTNAME}
-    command: --enable-label
+    command: --label-enable
 
 volumes:
   ccache:
