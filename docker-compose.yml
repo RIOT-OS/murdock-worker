@@ -6,7 +6,8 @@ services:
     tmpfs:
        - /tmp:exec,size=${MURDOCK_BUILD_TMPFS_GIGS}g,rw
     volumes:
-      - cache:/cache
+      - ccache:/cache/.ccache
+      - gitcache:/cache/.gitcache
       - ./scripts/murdock-worker.sh:/murdock-worker.sh
     environment:
       - CCACHE="ccache"
@@ -51,13 +52,14 @@ services:
       image: alpine:latest
       init: true
       volumes:
-        - cache:/cache
+        - ccache:/cache
       command: sh -c 'trap "exit" INT TERM KILL; while true; do sleep 1 ; done'
       restart: unless-stopped
 
 volumes:
-  cache:
+  ccache:
     driver_opts:
       type: tmpfs
       device: tmpfs
       o: exec,rw,noatime,size=${MURDOCK_CCACHE_MAXSIZE_GIGS:-8}g
+  gitcache:
