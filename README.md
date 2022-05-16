@@ -29,7 +29,8 @@ The stack will include the following containers:
   `/srv/murdock-worker` is what I use.
 - Extract ssh credentials. (there should be a folder named "ssh").
   - for current Murdock production, extract `ssh-current.tgz`
-  - fur ci-staging.riot-os.org, extract `ssh-staging.tgz`
+  - for ci-staging.riot-os.org, extract `ssh-staging.tgz`
+  - ensure correct permissions: `chown root:root ssh/*`
 - Copy `.env.example` to `.env`
 - Edit `.env`. Change _at least_ the hostname.
 - For current Murdock production, change these values:
