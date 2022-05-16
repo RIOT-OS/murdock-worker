@@ -33,7 +33,7 @@ The stack will include the following containers:
   - ensure correct permissions: `chown root:root ssh/*`
 - Copy `.env.example` to `.env`
 - Edit `.env`. Change _at least_ the hostname.
-- For current Murdock production, change these values:
+- For Murdock ci-staging, comment these values (so defaults are used):
 
         MURDOCK_REMOTE_DISQUE_HOST_PORT=localhost:7711
         MURDOCK_REMOTE_REDIS_HOST_PORT=localhost:6379
