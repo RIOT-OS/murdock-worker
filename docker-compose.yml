@@ -70,7 +70,6 @@ services:
       - WATCHTOWER_SCOPE=murdock-worker-${MURDOCK_HOSTNAME}
       - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-60}
       - WATCHTOWER_CLEANUP=true
-    command: --label-enable
     restart: unless-stopped
 
 volumes:
