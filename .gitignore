@@ -1,2 +1,2 @@
-/ssh/*
+/ssh/id_*
 .env
