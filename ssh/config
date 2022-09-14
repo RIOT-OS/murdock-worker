@@ -1,0 +1,20 @@
+Host ci-staging
+    HostName ci-staging.riot-os.org
+    Port 2223
+    User murdock-slave
+    IdentityFile ~/.ssh/id_rsa_murdock-slave
+    IdentitiesOnly yes
+
+Host ci-prod
+    HostName ci-prod.riot-os.org
+    Port 2222
+    User murdock-slave
+    IdentityFile ~/.ssh/id_rsa_murdock-slave
+    IdentitiesOnly yes
+
+Host ci-current
+    HostName ci.riot-os.org
+    Port 22
+    User murdock-slave
+    IdentityFile ~/.ssh/id_rsa_murdock-slave
+    IdentitiesOnly yes
