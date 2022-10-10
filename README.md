@@ -21,27 +21,29 @@ The stack will include the following containers:
 
 - docker-compose
 - git
-- tarball with ssh config and credentials. ping kaspar on Matrix to get it!
+- murdock worker ssh key. ping kaspar on Matrix to get it!
 
 ## Installation
 
 - Clone this repository to a location of your choice.
   `/srv/murdock-worker` is what I use.
-- Extract ssh credentials. (there should be a folder named "ssh").
-  - for current Murdock production, extract `ssh-current.tgz`
-  - for ci-staging.riot-os.org, extract `ssh-staging.tgz`
-  - ensure correct permissions: `chown root:root ssh/*`
 - Copy `.env.example` to `.env`
 - Edit `.env`. Change _at least_ the hostname.
+- copy murdock worker ssh key to `ssh/`
 
-- For Murdock ci-staging, comment these values (so defaults are used):
+By default, this will connect to "ci-staging", which is great for testing.
+Once everything is working, change .env to connect to "ci-prod".
 
-        MURDOCK_REMOTE_DISQUE_HOST_PORT=localhost:7711
-        MURDOCK_REMOTE_REDIS_HOST_PORT=localhost:6379
+## Starting
+
+`docker-compose up -d --scale worker=N`, with `N` being the number of concurrent
+jobs. Each worker will need 2GB RAM (in addition to the 8GB for the shared tmpfs
+for ccache).
+Start with half the number of *physical* cores.
 
 ## Configuration
 
 If the worker is dedicated to being a Murdock worker, one worker per physical
-core each running 4 jobs ensures the CPUs keep busy.
+core each running 4 jobs ensures the CPUs keep busy, if enough RAM is available.
 If RAM is an issue, go down on workers to one per two cores, possible increasing
-`MURDOCK_JOBS`.
+`MURDOCK_JOBS` (to e.g., `8`).
