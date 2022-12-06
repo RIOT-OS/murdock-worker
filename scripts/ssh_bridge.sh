@@ -3,6 +3,7 @@
 mkdir -p /root/.ssh
 cp /ssh/* /root/.ssh
 chown root:root /root/.ssh
+chmod 0600 /root/.ssh/id_*
 
 exec /usr/bin/autossh \
       -M 0 -C -N -o ServerAliveInterval=60 -o ServerAliveCountMax=2 \
