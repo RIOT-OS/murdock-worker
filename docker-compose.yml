@@ -6,17 +6,14 @@ services:
     tmpfs:
        - /tmp:exec,size=${MURDOCK_BUILD_TMPFS_GIGS}g,rw
     volumes:
-      - ccache:/cache/.ccache
-      - gitcache:/cache/.gitcache
+      - cache:/cache
+      - redis-ccache:/cache/redis
       - ./scripts/murdock-worker.sh:/murdock-worker.sh
     environment:
       - CCACHE="ccache"
       - CCACHE_DIR=/cache/.ccache
-      - CCACHE_MAXSIZE=${MURDOCK_CCACHE_MAXSIZE_GIGS:-8}G
-      - CCACHE_COMPRESS=true
-      # each file takes at least 4kb, so this needs to match the max size
-      # default to `0` (unlimited)
-      - CCACHE_MAX_FILES=${MURDOCK_CCACHE_MAX_FILES:-0}
+      - CCACHE_REMOTE_ONLY=1
+      - CCACHE_REMOTE_STORAGE=redis+unix:/cache/redis/redis-ccache.sock
       - GIT_CACHE_DIR=/cache/.gitcache
       - MURDOCK_HOSTNAME=${MURDOCK_HOSTNAME}
       - MURDOCK_REDIS_HOST=ssh_bridge
@@ -28,6 +25,17 @@ services:
     command: dwqw --name ${MURDOCK_HOSTNAME} --queues ${MURDOCK_HOSTNAME} ${MURDOCK_QUEUES:-defaultx} --jobs 1 --verbose
 
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
+
+  redis-ccache:
+    image: redis
+    environment:
+      - MURDOCK_CCACHE_MAXSIZE_GIGS=${MURDOCK_CCACHE_MAXSIZE_GIGS:-8}
+    command: redis-server --maxmemory ${MURDOCK_CCACHE_MAXSIZE_GIGS}G --maxmemory-policy allkeys-lru --unixsocket /data/redis-ccache.sock
+    restart: unless-stopped
+    volumes:
+      - redis-ccache:/data
     labels:
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
@@ -47,21 +55,6 @@ services:
     labels:
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
-  cache-keepalive:
-      # this is used to keep the cache volume alive during restarts of the other
-      # service containers (e.g., when docker compose recreates them after a pull.)
-      # if the last container using a tmpfs volume unmounts it, the tmpfs
-      # contents are gone. So, use a dummy container that's just using the
-      # volume
-      # Also, fixup cache folder permissions.
-      image: alpine:latest
-      init: true
-      volumes:
-        - ccache:/cache/.ccache
-        - gitcache:/cache/.gitcache
-      command: sh -c 'trap "exit" INT TERM KILL; chown 999 /cache/.ccache /cache/.gitcache ; while true; do sleep 1 ; done'
-      restart: unless-stopped
-
   watchtower:
     image: containrrr/watchtower
     volumes:
@@ -73,9 +66,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  ccache:
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-      o: exec,rw,noatime,size=${MURDOCK_CCACHE_MAXSIZE_GIGS:-8}g
-  gitcache:
+  cache:
+  redis-ccache:

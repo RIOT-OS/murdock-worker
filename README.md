@@ -8,8 +8,7 @@ The stack will include the following containers:
 - one or more container(s) using `riot/murdock-worker` that runs the dwq job runner
 - one ssh_bridge that connects via ssh to the murdock control node and provides
   access to its disque and redis instances
-- a cache keep-alive node, which mounts the same tmpfs cache volume as the worker
-  container. this allows the tmpfs to survive worker restarts
+- one redis instance acting as ccache storage backend
 - a watchtower instance keeping all containers up-to-date.
 
 ## Murdock Worker requirements
