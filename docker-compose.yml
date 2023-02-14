@@ -32,7 +32,7 @@ services:
     image: redis
     environment:
       - MURDOCK_CCACHE_MAXSIZE_GIGS=${MURDOCK_CCACHE_MAXSIZE_GIGS:-8}
-    command: redis-server --maxmemory ${MURDOCK_CCACHE_MAXSIZE_GIGS}G --maxmemory-policy allkeys-lru --unixsocket /data/redis-ccache.sock
+    command: redis-server --save "" --maxmemory ${MURDOCK_CCACHE_MAXSIZE_GIGS}G --maxmemory-policy allkeys-lru --unixsocket /data/redis-ccache.sock
     restart: unless-stopped
     volumes:
       - redis-ccache:/data
