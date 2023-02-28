@@ -49,6 +49,7 @@ services:
     environment:
       - MURDOCK_REMOTE_DISQUE_HOST_PORT=${MURDOCK_REMOTE_DISQUE_HOST_PORT:-disque:7711}
       - MURDOCK_REMOTE_REDIS_HOST_PORT=${MURDOCK_REMOTE_REDIS_HOST_PORT:-redis:6379}
+      - MURDOCK_REMOTE_VECTOR_HOST_PORT=${MURDOCK_REMOTE_VECTOR_HOST_PORT:-vector:8687}
       - MURDOCK_SSH_HOST=${MURDOCK_SSH_HOST:-ci-staging}
     entrypoint: /ssh_bridge.sh
     restart: unless-stopped
@@ -64,6 +65,19 @@ services:
       - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-60}
       - WATCHTOWER_CLEANUP=true
     restart: unless-stopped
+
+  vector:
+    hostname: ${MURDOCK_HOSTNAME}
+    image: timberio/vector:0.28.0-alpine
+    restart: unless-stopped
+    environment:
+      - MURDOCK_SSH_HOST=${MURDOCK_SSH_HOST:-ci-staging}
+    volumes:
+      - ./vector.toml:/etc/vector/vector.toml:ro
+    ports:
+      - "8686:8686"
+    labels:
+      - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
 volumes:
   cache:

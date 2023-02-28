@@ -1,0 +1,16 @@
+[api]
+enabled = true
+address = "0.0.0.0:8686"
+
+[sources.host-metrics]
+type = "host_metrics"
+
+[transforms.add_environment]
+type = "remap"
+inputs = [ "host-metrics" ]
+source = """.tags.environment = get_env_var!("MURDOCK_SSH_HOST") # add"""
+
+[sinks.upstream]
+type = "vector"
+inputs = [ "add_environment" ]
+address = "ssh_bridge:8687"
