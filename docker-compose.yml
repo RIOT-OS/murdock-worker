@@ -71,11 +71,24 @@ services:
     image: timberio/vector:0.28.0-alpine
     restart: unless-stopped
     environment:
+      - MURDOCK_HOSTNAME=${MURDOCK_HOSTNAME}
       - MURDOCK_SSH_HOST=${MURDOCK_SSH_HOST:-ci-staging}
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro
     ports:
       - "8686:8686"
+    labels:
+      - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
+
+  redis_exporter:
+    image: oliver006/redis_exporter
+    restart: unless-stopped
+    volumes:
+      - redis-ccache:/redis-ccache
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis-ccache:6379
     labels:
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
