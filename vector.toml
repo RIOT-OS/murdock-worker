@@ -1,0 +1,28 @@
+[api]
+enabled = true
+address = "0.0.0.0:8686"
+
+[sources.host-metrics]
+type = "host_metrics"
+
+[sources.redis]
+type = "prometheus_scrape"
+endpoints = [ "http://redis_exporter:9121/metrics" ]
+
+[sources.vector]
+type = "internal_metrics"
+
+[transforms.add_host]
+type = "remap"
+inputs = [ "redis", "vector" ]
+source = """.tags.host = get_env_var!("MURDOCK_HOSTNAME")"""
+
+[transforms.add_environment]
+type = "remap"
+inputs = [ "host-metrics", "add_host" ]
+source = """.tags.environment = get_env_var!("MURDOCK_SSH_HOST")"""
+
+[sinks.upstream]
+type = "vector"
+inputs = [ "add_environment" ]
+address = "ssh_bridge:8687"
