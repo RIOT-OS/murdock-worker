@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  vector:
+    volumes:
+      - ./vector.toml:/etc/vector/vector.toml:ro
+      - /proc/cpuinfo:/proc/cpuinfo:ro
+      - /sys/devices/system/cpu:/sys/devices/system/cpu:ro
+      - /proc/diskstats:/proc/diskstats:ro
+      - /proc/loadavg:/proc/loadavg:ro
+      - /proc/meminfo:/proc/meminfo:ro
+      - /proc/slabinfo:/proc/slabinfo:ro
+      - /proc/stat:/proc/stat:ro
+      - /proc/swaps:/proc/swaps:ro
+      - /proc/uptime:/proc/uptime:ro
