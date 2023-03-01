@@ -40,6 +40,25 @@ jobs. Each worker will need 2GB RAM (in addition to the 8GB for the shared tmpfs
 for ccache).
 Start with half the number of *physical* cores.
 
+### Inside an LXC container
+
+Running docker inside LXC comtainers works very much out of the box. E.g. on Proxmox additionally
+the fuse and the nesting capabilities need to be enabled and `fuse-overlayfs` needs to be installed.
+The reason is that native `overlayfs` cannot be used for rootless operation (or when the user
+launching the docker containers is only root within an LXC container namespace). Without
+`fuse-overlayfs` the VFS storage driver is used instead, which performs a deep copy of all lower
+layers into the upper layers. With a large number of layers, this increases storage consumption
+too much to be practical.
+
+**Note**: Expect that `fuse-overlayfs` will throttle the performance of your worker quite a bit.
+
+**Also note**: The metrics reported by the vector service will include RAM and CPUs available to the
+bare host (e.g. the Proxmox running the LXC container which runs the docker containers). To fix
+that, filtered versions of various `/proc/` files can be provided by lxcfs that can be bind-mounted
+into the docker container. To do so automatically, run
+`docker-compose -f docker-compose.yml -f docker-compose.lxc.yml up -d --scale worker=N` instead of
+just `docker-compose up -d --scale worker=N`.
+
 ## Configuration
 
 If the worker is dedicated to being a Murdock worker, one worker per physical
