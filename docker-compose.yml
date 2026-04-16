@@ -57,7 +57,7 @@ services:
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
   watchtower:
-    image: containrrr/watchtower
+    image: nickfedor/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
