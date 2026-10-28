@@ -19,7 +19,7 @@ services:
       - MURDOCK_REDIS_HOST=ssh_bridge
       - JOBS=${MURDOCK_JOBS:-4}
       - DWQ_DISQUE_URL=ssh_bridge:7711
-    user: "999"
+    # starts as root, murdock-worker.sh drops to the owner of the checkout
     entrypoint:
       - /murdock-worker.sh
     command: dwqw --name ${MURDOCK_HOSTNAME} --queues ${MURDOCK_HOSTNAME} ${MURDOCK_QUEUES:-defaultx} --jobs 1 --verbose
@@ -32,10 +32,12 @@ services:
     image: redis
     environment:
       - MURDOCK_CCACHE_MAXSIZE_GIGS=${MURDOCK_CCACHE_MAXSIZE_GIGS:-8}
+    entrypoint: /redis-ccache.sh
     command: redis-server --save "" --maxmemory ${MURDOCK_CCACHE_MAXSIZE_GIGS}G --maxmemory-policy allkeys-lru --unixsocket /data/redis-ccache.sock
     restart: unless-stopped
     volumes:
       - redis-ccache:/data
+      - ./scripts/redis-ccache.sh:/redis-ccache.sh
     labels:
       - com.centurylinklabs.watchtower.scope=murdock-worker-${MURDOCK_HOSTNAME}
 
